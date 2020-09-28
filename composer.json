@@ -1,0 +1,36 @@
+{
+    "name": "yoyo/twig",
+    "description": "Examples for Yoyo, a framework to easily create dynamic apps.",
+    "keywords": ["framework", "yoyo"],
+    "version": "1.0.0",
+    "license": "MIT",
+    "homepage": "https://github.com/Clickfwd/yoyo",
+    "support": {
+        "issues": "https://github.com/Clickfwd/yoyo/issues",
+        "source": "https://github.com/Clickfwd/yoyo"
+    },
+    "authors": [
+        {
+            "name": "ClickFWD"
+        }
+    ],
+    "require": {
+        "slim/slim": "4.*",
+        "slim/psr7": "^1.2",
+        "twig/twig": "^3.0",
+        "clickfwd/yoyo": "^0.0"
+    },
+    "require-dev": {
+    },
+    "autoload": {
+        "psr-4": {
+            "App\\": "app"
+        }
+    },
+    "repositories": [
+        {
+            "type": "path",
+            "url": "../yoyo"
+        }
+    ]
+}

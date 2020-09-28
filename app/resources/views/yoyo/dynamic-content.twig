@@ -1,0 +1,13 @@
+<div class="border border-gray-100 p-4" yoyo:on="load">
+
+    {% if spinning %}
+
+        {%for entry in entries %}
+
+            <h6>{{ entry['title'] }}</h6>
+        
+        {% endfor %}
+
+  {% endif %}
+
+</div>
