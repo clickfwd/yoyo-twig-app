@@ -8,8 +8,6 @@ class LiveSearch extends Component
 {
     protected $data;
 
-    protected $results = [];
-
     protected $queryString = ['q'];
 
     public $q;
@@ -17,11 +15,9 @@ class LiveSearch extends Component
     public function mount()
     {
         $this->data = require __DIR__.'/../test-data.php';
-
-        return $this;
     }
 
-    public function find()
+    public function results()
     {
         $results = [];
 

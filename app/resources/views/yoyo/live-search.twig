@@ -11,12 +11,10 @@
             </div>
     </form>
 
-    {% set results = yoyo.call(find) %}
-
-    {% if results %}
+    {% if this.results %}
         <div>
         <ul class="space-y-3">
-            {% for row in results %}
+            {% for row in this.results %}
                 <li class="py-2 px-4 border border-gray-300 bg-gray-50 sm:rounded-md">
                     {{ row['title'] }}
                 </li>

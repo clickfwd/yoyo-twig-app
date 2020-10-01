@@ -11,7 +11,7 @@ class NestingParent extends Component
         $this->emitTo('#wishlist-counter', 'refresh', ['liked' => 0]);
     }
 
-    public function _entries()
+    public function getEntriesProperty()
     {
         $entries = require APP_PATH.'/test-data.php';
 

@@ -1,5 +1,6 @@
 <div>
-    {% for key, entry in yoyo.call(entries) %}
+
+    {% for key, entry in this.entries %}
         
         {{ yoyo('wishlist',{'entry':entry}) }}
 

@@ -1,10 +1,9 @@
-{% set results = yoyo.call(entries) %}
 <div>
-    {% if results is empty %}
+    {% if this.results is empty %}
         No results
     {% else %}
         <ul class="space-y-3">
-        {% for entry in results %}
+        {% for entry in this.results %}
             <li class="py-2 px-4 border border-gray-300 bg-gray-50 sm:rounded-md">
                 <p>{{ entry['title'] }}</p>
             </li>
@@ -16,17 +15,17 @@
                 <div>
                 <p class="text-sm leading-5 text-gray-700">
                     Showing
-                    <span class="font-medium">{{ yoyo.call(start) }}</span>
+                    <span class="font-medium">{{ this.start }}</span>
                     to
-                    <span class="font-medium">{{ yoyo.call(end) }}</span>
+                    <span class="font-medium">{{ this.end }}</span>
                     of
-                    <span class="font-medium">{{ yoyo.call(total) }}</span>
+                    <span class="font-medium">{{ this.total }}</span>
                     results
                 </p>
                 </div>
                 <div>
                 <nav class="relative z-0 inline-flex shadow-sm">
-                    {% if yoyo.call(previous) %}
+                    {% if this.previous %}
                     <a href="?page=<?php echo $previous(); ?>" 
                         yoyo:vars="page:<?php echo $previous(); ?>" 
                         class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm leading-5 font-medium text-gray-500 hover:text-gray-400 focus:z-10 focus:outline-none focus:border-blue-300 focus:shadow-outline-blue active:bg-gray-100 active:text-gray-500 transition ease-in-out duration-150" aria-label="Previous">
@@ -41,14 +40,14 @@
                         yoyo:vars="page: {{ i }}" 
                         class="
                             {{ page == i ? 'text-pink-600 hover:text-pink-600' : '' }}
-                            {{ i == 1 and not yoyo.call(previous)  ? 'rounded-l-md' : '' }}
-                            {{ i == pages and not yoyo.call(next)  ? 'rounded-r-md' : '' }}
+                            {{ i == 1 and not this.previous  ? 'rounded-l-md' : '' }}
+                            {{ i == pages and not this.next  ? 'rounded-r-md' : '' }}
                             -ml-px relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm leading-5 font-medium text-gray-700 hover:text-gray-500 focus:z-10 focus:outline-none focus:border-blue-300 focus:shadow-outline-blue active:bg-gray-100 active:text-gray-700 transition ease-in-out duration-150"
                         >
                         {{ i }}
                     </a>
                     {% endfor %}
-                    {% if yoyo.call(next) %}
+                    {% if this.next %}
                     <a href="?page=<?php echo $next(); ?>" 
                         yoyo:vars="page:<?php echo $next(); ?>" 
                         class="-ml-px relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm leading-5 font-medium text-gray-500 hover:text-gray-400 focus:z-10 focus:outline-none focus:border-blue-300 focus:shadow-outline-blue active:bg-gray-100 active:text-gray-500 transition ease-in-out duration-150" aria-label="Next"
