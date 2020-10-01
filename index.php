@@ -22,6 +22,7 @@ $app->get('/', function (Request $request, Response $response, $args) {
   $content = $twig->render('layout.twig', [
     'components' => [
       'counter' => [],
+      'upload' => [],
       'nesting-parent' => [],
       'wishlist-counter' => [
           'attributes' => ['id' => 'wishlist-counter']
