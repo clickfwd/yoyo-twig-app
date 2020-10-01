@@ -2,7 +2,7 @@
     "name": "clickfwd/yoyo-twig",
     "description": "Yoyo Twig demo app.",
     "keywords": ["yoyo","framework","reactive","dynamic","twig"],
-    "version": "1.0.0",
+    "version": "0.0.4",
     "license": "MIT",
     "homepage": "https://github.com/clickfwd/yoyo-twig",
     "support": {
