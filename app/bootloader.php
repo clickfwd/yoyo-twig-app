@@ -11,7 +11,7 @@ $yoyo = new Yoyo();
 
 $yoyo->configure([
   'url' => 'yoyo',
-  'scriptsPath' => 'app/resources/assets/js/',
+  'scriptsPath' => 'assets/js/',
   'namespace' => 'App\\Yoyo\\',
 ]);
 

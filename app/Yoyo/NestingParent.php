@@ -8,7 +8,7 @@ class NestingParent extends Component
 {
     public function mount()
     {
-        $this->emitTo('#wishlist-counter', 'refresh', ['liked' => 0]);
+        $this->emitTo('#wishlist-counter', 'reset-likes');
     }
 
     public function getEntriesProperty()
