@@ -4,11 +4,11 @@ use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Clickfwd\Yoyo\Yoyo;
 
-require __DIR__.'/vendor/autoload.php';
+require __DIR__.'/../vendor/autoload.php';
 
 $app = AppFactory::create();
 
-require __DIR__.'/app/bootloader.php';
+require __DIR__.'/../app/bootloader.php';
 
 $app->get('/', function (Request $request, Response $response, $args) {
 
@@ -19,24 +19,7 @@ $app->get('/', function (Request $request, Response $response, $args) {
   shuffle($entries);
   $entries = array_splice($entries,0,3);
 
-  $content = $twig->render('layout.twig', [
-    'components' => [
-      'counter' => [],
-      'upload' => [],
-      'nesting-parent' => [],
-      'wishlist-counter' => [
-          'attributes' => ['id' => 'wishlist-counter']
-      ],
-      'live-search' => [],
-      'load-more' => [],
-      'pagination' => [],
-      'dynamic-content' => [
-          'variables' => ['entries' => $entries],
-      ],
-      'polling' => [],
-      'form' => [],    
-    ]
-  ]); 
+  $content = $twig->render('layout.twig', ['entries' => $entries]); 
 
   $response->getBody()->write($content);
 
