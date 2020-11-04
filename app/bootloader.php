@@ -31,4 +31,6 @@ $twig->addExtension(new YoyoTwigExtension());
 
 // $twig->addExtension(new DebugExtension());
 
-$yoyo->setViewProvider(new TwigViewProvider($twig));
+$yoyo->registerViewProvider(function() use ($twig) {
+  return new TwigViewProvider($twig);
+});
