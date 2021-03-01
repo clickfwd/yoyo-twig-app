@@ -18,7 +18,7 @@
                 </svg>
             </a>
             {% endif %}
-            <input yoyo:on="add-new" yoyo:post="add" x-on:keydown.enter="if($event.target.value !== '') $dispatch('add-new')" name="task" class="block w-full form-input" placeholder="What needs to be done?" {{ not this.editing and spinning ? 'autofocus' : '' }}>
+            <input yoyo:on="add-new" yoyo:post="add" x-on:keydown.enter="if($event.target.value !== '') $dispatch('add-new')" name="taskNew" class="block w-full form-input" placeholder="What needs to be done?" {{ not this.editing and spinning ? 'autofocus' : '' }}>
         </div>        
     </header>
 
@@ -33,14 +33,14 @@
                 {% if this.editing == entry.id %}
                     <div class="flex my-3 relative rounded-md shadow-sm">
                         <input id="edit" 
-                            yoyo:on="blur" yoyo:post="save" yoyo:vars="id:{{ entry.id|escape }}" 
+                            yoyo:on="blur" yoyo:post="save" yoyo:val.id="{{ entry.id|escape }}" 
                             x-on:keydown.enter="if($event.target.value !== '') $event.target.blur()" 
                             class="form-input block w-full sm:text-sm sm:leading-5" name="task" value="{{ entry.title|escape }}"
                         >
                     </div>
                 {% else %}
                     <div 
-                        yoyo:vars="id:{{ entry.id|escape }}"
+                        yoyo:val.id="{{ entry.id|escape }}"
                         class="group flex space-x-4 items-center group py-2 px-4 border border-gray-300 bg-gray-50 sm:rounded-md {{ status == 'completed' ? 'completed' : '' }} {{ this.editing == entry.id ? 'editing' : '' }}">
                         
                         <input yoyo:get="toggle" class="form-checkbox" type="checkbox" {{ status == 'completed' ? 'checked' : '' }} />
@@ -70,19 +70,19 @@
         <span class="text-gray-600 font-medium text-center sm:text-left">{{ this.count_active }} items left</span>
         <div class="flex-1 flex flex-row space-x-4 justify-center items-center">
             <span class="inline-flex rounded-md shadow-sm">
-                <button yoyo:get="render" yoyo:vars="filter:''" type="button" 
+                <button yoyo:get="render" yoyo:val.filter="" type="button" 
                     class="{{ not filter ? 'text-gray-700' : 'text-gray-400' }} inline-flex items-center px-2.5 py-1.5 border border-gray-300 text-xs leading-4 font-medium rounded bg-white focus:outline-none focus:border-blue-300 focus:shadow-outline-blue active:text-gray-800 active:bg-gray-50 transition ease-in-out duration-150">
                     All
                 </button>
             </span>
             <span class="inline-flex rounded-md shadow-sm">
-                <button yoyo:get="render" yoyo:vars="filter:'active'" type="button" 
+                <button yoyo:get="render" yoyo:val.filter="active" type="button" 
                 class="{{ filter == 'active' ? 'text-gray-700' : 'text-gray-400' }} inline-flex items-center px-2.5 py-1.5 border border-gray-300 text-xs leading-4 font-medium rounded bg-white focus:outline-none focus:border-blue-300 focus:shadow-outline-blue active:text-gray-800 active:bg-gray-50 transition ease-in-out duration-150">
                     Active
                 </button>
             </span>
             <span class="inline-flex rounded-md shadow-sm">
-                <button yoyo:get="render" yoyo:vars="filter:'completed'" type="button" 
+                <button yoyo:get="render" yoyo:val.filter="completed" type="button" 
                     class="{{ filter == 'completed' ? 'text-gray-700' : 'text-gray-400' }} inline-flex items-center px-2.5 py-1.5 border border-gray-300 text-xs leading-4 font-medium rounded bg-white focus:outline-none focus:border-blue-300 focus:shadow-outline-blue active:text-gray-800 active:bg-gray-50 transition ease-in-out duration-150">
                     Completed
                 </button>
