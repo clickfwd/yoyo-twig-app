@@ -8,6 +8,8 @@ class Counter extends Component
 {
     public $count = 0;
 
+    protected $props = ['count'];
+    
     protected $queryString = ['count'];
 
     public function increment()

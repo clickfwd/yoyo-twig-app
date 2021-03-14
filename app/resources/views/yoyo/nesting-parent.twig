@@ -1,8 +1,8 @@
 <div>
 
     {% for key, entry in this.entries %}
-        
-        {{ yoyo('wishlist',{'entry':entry}) }}
+
+        {{ yoyo('wishlist',{'id': key, 'entry':entry}) }}
 
     {% endfor %}
     

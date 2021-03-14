@@ -14,12 +14,7 @@ $app->get('/', function (Request $request, Response $response, $args) {
 
   $twig = Yoyo::getViewProvider()->getProviderInstance();
 
-  // For dynamic content component
-  $entries = include(APP_PATH.'/test-data.php');
-  shuffle($entries);
-  $entries = array_splice($entries,0,3);
-
-  $content = $twig->render('layout.twig', ['entries' => $entries]); 
+  $content = $twig->render('layout.twig'); 
 
   $response->getBody()->write($content);
 

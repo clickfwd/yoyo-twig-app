@@ -2,5 +2,3 @@ vendor
 node_modules
 cache
 .php_cs.cache
-composer.lock
-package-lock.json

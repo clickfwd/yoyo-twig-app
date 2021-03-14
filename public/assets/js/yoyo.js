@@ -10,12 +10,10 @@
 
 		window.YoyoEngine = window.htmx
 
-		window.addEventListener('DOMContentLoaded', () => {
-			window.addEventListener('popstate', (event) => {
-				event?.state?.yoyo?.forEach((state) =>
-					restoreComponentStateFromHistory(state)
-				)
-			})
+		window.addEventListener('popstate', (event) => {
+			event?.state?.yoyo?.forEach((state) =>
+				restoreComponentStateFromHistory(state)
+			)
 		})
 
 		var Yoyo = {
@@ -33,9 +31,8 @@
 					)
 				})
 			},
-			processedNode(evt) {
+			createNonExistentIdTarget(targetId) {
 				// Dynamically create non-existent target IDs by appending them to document body
-				const targetId = evt.srcElement.getAttribute('hx-target')
 				if (
 					targetId &&
 					targetId[0] == '#' &&
@@ -45,12 +42,30 @@
 					targetDiv.setAttribute('id', targetId.replace('#', ''))
 					document.body.appendChild(targetDiv)
 				}
+			},
+			afterProcessNode(evt) {
+				this.createNonExistentIdTarget(
+					evt.srcElement.getAttribute('hx-target')
+				)
+
+				// Initialize spinners
+				let component
 
 				if (!evt.srcElement || !isComponent(evt.srcElement)) {
+					// For innerHTML swap find the component root node
+					component = YoyoEngine.closest(
+						evt.detail.elt,
+						'[hx-swap~=innerHTML]'
+					)
+				} else {
+					component = getComponent(evt.srcElement)
+				}
+
+				if (!component) {
 					return
 				}
 
-				initializeComponentSpinners(getComponent(evt.srcElement))
+				initializeComponentSpinners(component)
 			},
 			bootstrapRequest(evt) {
 				const elt = evt.target
@@ -60,6 +75,9 @@
 				if (evt.detail.path === document.location.href) {
 					evt.detail.path = 'render'
 				}
+
+				// Includes the commonly-used X-Requested-With header that identifies ajax requests in many backend frameworks
+				evt.detail.headers['X-Requested-With'] = 'XMLHttpRequest'
 
 				const action = getActionAndParseArguments(evt.detail)
 
@@ -81,15 +99,15 @@
 					}
 				}
 			},
-			processEmitEvents(events) {
-				if (!events) return
+			processEmitEvents(elt, events) {
+				if (!events || events == '[]') return
 
 				events = typeof events == 'string' ? JSON.parse(events) : events
 
 				yoyoEventCache.clear()
 
 				events.forEach((event) => {
-					triggerServerEmittedEvent(event)
+					triggerServerEmittedEvent(elt, event)
 				})
 			},
 			processBrowserEvents(events) {
@@ -140,8 +158,10 @@
 
 				// Browser history support only works with components modifing the URL queryString
 
-				if (!pushedUrl || component.__yoyo.replayingHistory) {
-					component.__yoyo.replayingHistory = false
+				if (!pushedUrl || component?.__yoyo?.replayingHistory) {
+					if (component.yoyo) {
+						component.__yoyo.replayingHistory = false
+					}
 					return
 				}
 
@@ -194,10 +214,15 @@
 		function getActionAndParseArguments(detail) {
 			let path = detail.path
 			const match = path.match(/(.*)\((.*)\)/)
-
 			if (match) {
+				let args = match[2].split(',').map((value) => {
+					const val = value
+						.replace(/'(.*)'/, '$1')
+						.replace(/"(.*)"/, '$1')
+					return isNaN(val) ? val : parseFloat(val)
+				})
 				path = match[1]
-				detail.parameters['actionArgs'] = match[2]
+				detail.parameters['actionArgs'] = JSON.stringify(args)
 			}
 
 			const action = '' + path
@@ -205,7 +230,7 @@
 		}
 
 		function isComponent(elt) {
-			return elt.hasAttribute('yoyo:name')
+			return elt?.hasAttribute('yoyo:name')
 		}
 
 		function getComponent(elt) {
@@ -218,7 +243,10 @@
 
 		function getComponentById(componentId) {
 			if (!componentId) return null
-			return document.querySelector(`#${componentId}`)
+
+			const component = document.querySelector(`#${componentId}`)
+
+			return isComponent(component) ? component : null
 		}
 
 		function getComponentName(component) {
@@ -246,7 +274,6 @@
 
 		function getAncestorcomponents(selector) {
 			let ancestor = getComponent(document.querySelector(selector))
-
 			let ancestors = []
 
 			while (ancestor) {
@@ -254,12 +281,21 @@
 				ancestor = getComponent(ancestor.parentElement)
 			}
 
+			// Remove the current component
+			ancestors.shift()
 			return ancestors
 		}
 
-		function shouldTriggerYoyoEvent(elt) {
-			if (isComponent(elt) && !yoyoEventCache.has(elt.id)) {
-				yoyoEventCache.add(elt.id)
+		function shouldTriggerYoyoEvent(elt, eventName) {
+			let key
+			if (isComponent(elt)) {
+				key = `${elt.id}${eventName}`
+			} else if (elt.selector !== undefined) {
+				return true
+			}
+
+			if (key && !yoyoEventCache.has(key)) {
+				yoyoEventCache.add(key)
 				return true
 			}
 
@@ -276,6 +312,10 @@
 			evt.detail.parameters[
 				'component'
 			] = `${componentName}/${eventData.name}`
+
+			if (eventData.params) {
+				delete eventData.params.elt
+			}
 
 			evt.detail.parameters = {
 				...evt.detail.parameters,
@@ -307,32 +347,41 @@
 			})
 		}
 
-		function triggerServerEmittedEvent(event) {
+		function triggerServerEmittedEvent(elt, event) {
+			const component = getComponent(elt)
 			const eventName = event.event
 			const params = event.params
 			const selector = event.selector || null
 			const componentName = event.component || null
-			const ancestorsOnly = event.ancestorsOnly || null
+			const propagation = event.propagation || null
 			let elements
 
+			// emit
 			if (!selector && !componentName) {
 				elements = getAllcomponents()
-			} else if (selector) {
-				if (ancestorsOnly) {
-					elements = getAncestorcomponents(selector)
-				} else {
-					const elt = document.querySelector(selector)
-					if (elt) {
-						elements = [elt]
-					}
-				}
 			} else if (componentName) {
-				elements = getComponentsByName(componentName)
+				// emitUp
+				if (propagation == 'ancestorsOnly') {
+					elements = getAncestorcomponents(selector)
+					// emitSelf
+				} else if (propagation == 'self') {
+					elements = [component]
+					// emitTo
+				} else {
+					elements = getComponentsByName(componentName)
+				}
+				// emitWithSelector, excludes current component to allow replication without udpating the current component twice
+			} else if (selector) {
+				elements = document.querySelectorAll(selector)
+				elements = Array.from(elements).filter(
+					(element) => !component.contains(element)
+				)
+				elements.forEach((elt) => (elt.selector = selector))
 			}
 
-			if (elements) {
+			if (elements.length) {
 				elements.forEach((elt) => {
-					if (shouldTriggerYoyoEvent(elt)) {
+					if (shouldTriggerYoyoEvent(elt, eventName)) {
 						addEmittedEventParametersToListenerComponent(
 							getComponent(elt),
 							eventName,
@@ -572,7 +621,7 @@
 				YoyoEngine.trigger(cached, 'refresh')
 			} else {
 				Yoyo.processBrowserEvents(state?.effects?.browserEvents)
-				Yoyo.processEmitEvents(state?.effects?.emitEvents)
+				Yoyo.processEmitEvents(component, state?.effects?.emitEvents)
 			}
 		}
 
@@ -626,8 +675,8 @@
 
 YoyoEngine.defineExtension('yoyo', {
 	onEvent: function (name, evt) {
-		if (name === 'htmx:processedNode') {
-			Yoyo.processedNode(evt)
+		if (name === 'htmx:afterProcessNode') {
+			Yoyo.afterProcessNode(evt)
 		}
 
 		if (name === 'htmx:configRequest') {
@@ -648,26 +697,49 @@ YoyoEngine.defineExtension('yoyo', {
 		if (name === 'htmx:afterOnLoad') {
 			Yoyo.afterOnLoadActions(evt)
 
-			if (!evt.target) return
-
 			const xhr = evt.detail.xhr
 
-			// afterSwap and afterSettle events are not triggered for targets different than the Yoyo component
-			// so we run those actions here
-			if (
-				!evt.target.isSameNode(evt.detail.target) ||
-				evt.detail.xhr.status == 204
-			) {
-				Yoyo.processEmitEvents(xhr.getResponseHeader('Yoyo-Emit'))
-				Yoyo.processBrowserEvents(
-					xhr.getResponseHeader('Yoyo-Browser-Event')
-				)
-				Yoyo.processRedirectHeader(xhr)
-			}
+			Yoyo.processEmitEvents(
+				evt.detail.elt,
+				xhr.getResponseHeader('Yoyo-Emit')
+			)
+
+			Yoyo.processBrowserEvents(
+				xhr.getResponseHeader('Yoyo-Browser-Event')
+			)
+
+			Yoyo.processRedirectHeader(xhr)
+
+			// Re-spawn targets removed from the page and take into account swap delays
+			let modifier = xhr.getResponseHeader('Yoyo-Swap-Modifier')
+			if (!modifier) return
+			let swap = modifier.match(/swap:([0-9.]+)s/)
+			let time = swap[1] ? swap[1] * 1000 + 1 : 0
+			setTimeout(() => {
+				if (
+					!evt.detail.target.isConnected &&
+					document.querySelector(
+						`[hx-target="#${evt.detail.target.id}"]`
+					)
+				) {
+					Yoyo.createNonExistentIdTarget(`#${evt.detail.target.id}`)
+				}
+			}, time)
 		}
 
 		if (name === 'htmx:beforeSwap') {
 			if (!evt.target) return
+
+			const modifier = evt.detail.xhr.getResponseHeader(
+				'Yoyo-Swap-Modifier'
+			)
+
+			if (modifier) {
+				const swap =
+					evt.detail.elt.getAttribute('hx-swap') ||
+					YoyoEngine.config.defaultSwapStyle
+				evt.detail.elt.setAttribute('hx-swap', `${swap} ${modifier}`)
+			}
 
 			Yoyo.processBrowserEvents(
 				evt.detail.xhr.getResponseHeader('Yoyo-Browser-Event')
@@ -675,11 +747,10 @@ YoyoEngine.defineExtension('yoyo', {
 		}
 
 		if (name === 'htmx:afterSettle') {
-			if (!evt.target) return
-
-			const xhr = evt.detail.xhr
-
-			Yoyo.processEmitEvents(xhr.getResponseHeader('Yoyo-Emit'))
+			// Push component response to history cache
+			// Make sure we trigger once for the new element - this was failing in Safari mobile
+			// Causing a duplicate snapshot
+			if (!evt.target || !evt.target.isConnected) return
 
 			Yoyo.afterSettleActions(evt)
 		}
